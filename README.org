@@ -1,0 +1,1 @@
+This repository contains the collection of work relevant to the University of Hawaii at Manoa's energy data science.
