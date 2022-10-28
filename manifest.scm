@@ -1,0 +1,16 @@
+(use-modules (gnu packages))
+
+(packages->manifest
+ (list (specification->package "python-numpy")
+       (specification->package "python-pandas")
+       (specification->package "python-sqlalchemy")
+       (specification->package "python-sshtunnel")
+       (specification->package "python-psycopg2")
+       (specification->package "python-pandas")
+       (specification->package "python-matplotlib")
+       (specification->package "python-scipy")
+       (specification->package "python-sympy")
+       (specification->package "python-scikit-learn")
+       (specification->package "python-seaborn")
+       (specification->package "python-xgboost")
+       (specification->package "python-numexpr")))
