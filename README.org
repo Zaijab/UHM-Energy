@@ -14,10 +14,6 @@
 #+LATEX_HEADER: \newcommand{\Cov}{\operatorname{Cov}}
 #+LATEX_HEADER: \newcommand{\Var}{\operatorname{Var}}
 
-This repository contains the collection of work relevant to the University of Hawaii at Manoa's energy data science.
-
-This work performs two main actions: Data Wrangling and Data Analysis.
-
 * Wrangling
 
 ** Source
