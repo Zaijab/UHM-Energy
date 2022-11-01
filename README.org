@@ -1,1 +1,33 @@
+#+LATEX_HEADER: \usepackage{physics}
+#+LATEX_HEADER: \usepackage{tikz-cd}
+#+LATEX_HEADER: \usepackage{tikz}
+#+LATEX_HEADER: \usepackage{color}
+#+LATEX_HEADER: \usepackage{times}
+#+LATEX_HEADER: \usetikzlibrary{arrows, automata}
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage{diffcoeff}
+#+LATEX_HEADER: \usepackage{bbm}
+#+LATEX_HEADER: \newcommand{\P}{\mathbb{P}}
+#+LATEX_HEADER: \newcommand{\E}{\operatorname{\mathbb{E}}}
+#+LATEX_HEADER: \newcommand{\adj}{\operatorname{adj}}
+#+LATEX_HEADER: \newcommand{\adj}{\operatorname{det}}
+#+LATEX_HEADER: \newcommand{\Cov}{\operatorname{Cov}}
+#+LATEX_HEADER: \newcommand{\Var}{\operatorname{Var}}
+
 This repository contains the collection of work relevant to the University of Hawaii at Manoa's energy data science.
+
+This work performs two main actions: Data Wrangling and Data Analysis.
+
+* Wrangling
+
+** Source
+Some buildings are equipped with a [[https://www.bluepillar.com/][Blue Pillar]] meter. As of $TODAY Zain Jabbar has no access to the dataset.
+
+** Organization
+The data can be organized in the following manner.
+
+=Campus= *contains* =Building_Complex= *contains* =Buildings= *contains* =Main Meters= *contains* =Sub Meters= 
+
+*Contains* is a bit of a "catch all" for some kind of encompassing relationship. It can be thought of as the answer to, "What would I need to add up to get a total power reading?". For example, "How much power does UH Manoa draw on January 1st?" would be answered by summing all meters in Manoa. We can answer this equivalently by recursion \( \text{Power}(\text{Manoa}) = \sum_{\text{Building} \in \text{Building Complex}} \text{Power}(\text{Building}) \).
+
+Thinking about the organization of the data in this recursive manner tells us we should use a directed acyclic graph (DAG). 
