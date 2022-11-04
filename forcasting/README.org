@@ -1,0 +1,15 @@
+One goals of the project is to understand building behavior.
+
+Of course, *understand* and *building behavior* are very general terms and completely up to interpretation. However, those were the specifications I was told and any inquiries for further specification have been refused.
+
+My self imposed definition takes the following form; build a predictive model, misbehavior is then a deviation from the predicted value.
+
+The predictive model will be a Long Short-term Memory Recurrent Neural Network LSTM-RNN using TensorFlow and Keras.
+
+The code takes inspiration from the following papers (available freely through [[https://manoa.hawaii.edu/library/][UH Library]]  or on [[https://arxiv.org/][Arxiv]]):
+
+He, Y. L., Chen, L., Gao, Y., Ma, J. H., Xu, Y., & Zhu, Q. X. (2022). Novel double-layer bidirectional LSTM network with improved attention mechanism for predicting energy consumption. ISA transactions, 127, 350-360.
+
+Lai, G., Chang, W. C., Yang, Y., & Liu, H. (2018, June). Modeling long-and short-term temporal patterns with deep neural networks. In The 41st international ACM SIGIR conference on research & development in information retrieval (pp. 95-104).
+
+My deepest gratitude to Dr. Michael J. Roberts, Dr. Peter Sadowski, and the authors of the papers cited.

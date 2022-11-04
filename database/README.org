@@ -1,0 +1,15 @@
+This directory defines modules to define the database and to access said database.
+
+The main source of data is from Aurora at BluePillar. Using their API, we grab 15 Minute kW and kWh data for every meter and every building.
+
+Using the distinct names for the meters and buildings we create a DAG.
+
+Aurora has meters and buildings.
+
+Aurora Meters can turn into the meter list.
+
+Aurora Building match our notion of a building complex.
+
+Manoa Master Building List Matches our notion of Buildings.
+
+Chiller loops on the Drive contains the cooling loops.
