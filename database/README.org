@@ -1,15 +1,33 @@
 This directory defines modules to define the database and to access said database.
 
+* Data Sources
+
 The main source of data is from Aurora at BluePillar. Using their API, we grab 15 Minute kW and kWh data for every meter and every building.
 
-Using the distinct names for the meters and buildings we create a DAG.
-
-Aurora has meters and buildings.
+Aurora has meters and buildings complexes.
 
 Aurora Meters can turn into the meter list.
 
-Aurora Building match our notion of a building complex.
-
-Manoa Master Building List Matches our notion of Buildings.
+Manoa Master Building List has a list of buildings.
 
 Chiller loops on the Drive contains the cooling loops.
+
+
+* Database Organization
+
+We may define the metering hierarchy by containment. The rule is as follows:
+
+=Campus= *contains* =Cooling Loops= which *contains* =Building Complexes= which *contains* =Buildings= which *contains* =Main Meters= which *contains* =Sub meters=.
+
+The idea is to create a hierarchy of containment as most calculations will involve taking one property, and summing over the values of that property. That is, we would like to easily answer the following questions:
+
+- How much power does the Quadrangle loop draw at a given point in time?
+
+- What is the total demand per square foot of POST Building and the chiller plant?
+
+- That is the time of the peak demand for Manoa?
+
+- How close (in time) are the peaks of Manoa campus and the peaks of each building complex?
+
+For each element of the hierarchy we establish a table in the =aurora= schema in PostgreSQL.
+

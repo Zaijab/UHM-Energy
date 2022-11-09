@@ -17,6 +17,8 @@ These are as follows:
 - Outlier Data
 - Energy Downtick Data
 
+We will move these erroneous rows to a rejected table.
+
 *** Load
 The data post cleaning will be loaded into a PostgreSQL data warehouse. 
 

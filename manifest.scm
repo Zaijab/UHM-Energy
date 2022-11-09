@@ -6,25 +6,32 @@
   ;; Shell Tools
   (specification->package "bash")
   (specification->package "coreutils")
-  (specification->package "password-store")
   (specification->package "git")
+  (specification->package "password-store")
+
+  ;; Framework
+  ;; ((options->transformation
+  ;;   '((with-latest . "tensorflow")
+  ;;     (with-latest . "glibc")))
+  ;;  (specification->package "tensorflow"))
+  ;; (specification->package "tensorflow")
   
   ;; Python Version
   (specification->package "python")
 
-  ;; Analysis Tools
+  ;; Python Analysis Tools
+  ;; ((options->transformation
+  ;;   '((with-input . "python-pyparsing=python-pyparsing@3.0.6")
+  ;;     (without-tests . "python-pydot")
+  ;;     (without-tests . "python-keras")))
+  ;;  (specification->package "python-keras"))
   (specification->package "python-numpy")
-  (specification->package "python-pandas")
+  (specification->package "python-gast")
   (specification->package "python-matplotlib")
-  (specification->package "tensorflow")
-  ((options->transformation
-    '((with-input . "python-pyparsing=python-pyparsing@3.0.6")
-      (without-tests . "python-pydot")
-      (without-tests . "python-keras")))
-   (specification->package "python-keras"))
+  (specification->package "python-pandas")
+  (specification->package "python-plotly")
 
-
-  ;; Database Interaction
+  ;; Python Database Interaction
   (specification->package "python-psycopg2")
   (specification->package "python-sqlalchemy")
   (specification->package "python-sshtunnel")))
