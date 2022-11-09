@@ -50,3 +50,5 @@ direnv allow
 #+END_SRC
 
 Using =GNU Emacs= and =direnv-mode= will install all the required packages using the =GNU Guix= package manager automatically and will set all the environmental variables.
+
+However this project is not limited to =GNU Guix= and as long as one installs the right packages from =PyPI= the code shall run.
