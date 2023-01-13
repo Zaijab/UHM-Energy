@@ -1,0 +1,420 @@
+#+TITLE: Forcasting
+#+PROPERTY: header-args:python3 :exports "results" :session forcasting :pandoc t :async yes :results value
+
+* Goals
+One goals of the project is to understand building behavior.
+
+Of course, *understand* and *building behavior* are very general terms and completely up to interpretation. However, those were the specifications I was told and any inquiries for further specification have been refused.
+
+My self imposed definition takes the following form; build a predictive model, misbehavior is then a deviation from the predicted value.
+
+The predictive model will be a Long Short-term Memory Recurrent Neural Network LSTM-RNN using TensorFlow and Keras.
+
+* Use
+#+begin_src python3
+import numpy as np
+import pandas as pd
+import os
+import matplotlib.pyplot as plt
+from model import LSTNet
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
+plt.rcParams['figure.figsize'] = [6, 4]
+plt.rcParams['figure.dpi'] = 75
+
+data = pd.read_csv("../data/data.csv")
+y = np.log(data["kw_average"].to_numpy())
+
+# Fit the model
+model = LSTNet(
+    y=y,
+    forecast_period=96,
+    lookback_period=96*7,
+    kernel_size=3,
+    filters=4,
+    gru_units=4,
+    skip_gru_units=3,
+    skip=50,
+    lags=100,
+)
+
+model.fit(
+    loss='mse',
+    learning_rate=0.01,
+    batch_size=128,
+    epochs=100,
+    verbose=1)
+predictions = model.predict(index=y.shape[0] - 96*7)
+forecasts = model.forecast()
+#+end_src
+
+#+RESULTS:
+#+begin_example
+2022-12-15 19:03:27.204977: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F AVX512_VNNI FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-12-15 19:03:27.281888: I tensorflow/core/util/port.cc:104] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2022-12-15 19:03:27.284328: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2022-12-15 19:03:27.284337: I tensorflow/compiler/xla/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2022-12-15 19:03:27.729328: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory
+2022-12-15 19:03:27.729362: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory
+2022-12-15 19:03:27.729366: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2022-12-15 19:03:28.224501: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcuda.so.1'; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory
+2022-12-15 19:03:28.224519: W tensorflow/compiler/xla/stream_executor/cuda/cuda_driver.cc:265] failed call to cuInit: UNKNOWN ERROR (303)
+2022-12-15 19:03:28.224531: I tensorflow/compiler/xla/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (tao): /proc/driver/nvidia/version does not exist
+2022-12-15 19:03:28.224659: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F AVX512_VNNI FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-12-15 19:03:30.041490: W tensorflow/core/common_runtime/type_inference.cc:339] Type inference failed. This indicates an invalid graph that escaped type checking. Error message: INVALID_ARGUMENT: expected compatible input types, but input 1:
+type_id: TFT_OPTIONAL
+args {
+  type_id: TFT_PRODUCT
+  args {
+    type_id: TFT_TENSOR
+    args {
+      type_id: TFT_FLOAT
+    }
+  }
+}
+ is neither a subtype nor a supertype of the combined inputs preceding it:
+type_id: TFT_OPTIONAL
+args {
+  type_id: TFT_PRODUCT
+  args {
+    type_id: TFT_TENSOR
+    args {
+      type_id: TFT_INT32
+    }
+  }
+}
+
+	while inferring type of node 'model/skip_gru/while/body/_184/model/skip_gru/while/cond/output/_1262'
+729/729 [==============================] - 21s 28ms/step
+1/1 [==============================] - 0s 232ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 35ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 31ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 44ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 44ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 46ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 33ms/step
+1/1 [==============================] - 0s 44ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 34ms/step
+1/1 [==============================] - 0s 35ms/step
+1/1 [==============================] - 0s 35ms/step
+1/1 [==============================] - 0s 46ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 44ms/step
+1/1 [==============================] - 0s 43ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 49ms/step
+1/1 [==============================] - 0s 32ms/step
+1/1 [==============================] - 0s 38ms/step
+#+end_example
+
+
+
+#+begin_src python3 :results value
+predictions.drop(columns="time_idx").plot(kind="line")
+forecasts.drop(columns="time_idx").plot(kind="line")
+((predictions["actual_1"] - predictions["predicted_1"])**2).sum()
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+: 0.0457502986074511
+[[file:./.ob-jupyter/4a56ebb87e808df5e9a5f4cf5b40944625944248.png]]
+[[file:./.ob-jupyter/34511386a386b089c3c7bad2192855cf5cf08fd1.png]]
+:END:
+
+#+begin_src python3
+#plt.rcParams['figure.dpi'] = 150
+for i in range(14):
+    predictions = model.predict(index=y.shape[0] - 96*(i+1))
+    print(((predictions["actual_1"] - predictions["predicted_1"])**2).sum())
+    predictions.drop(columns="time_idx").plot(kind="line")
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+#+begin_example
+729/729 [==============================] - 27s 36ms/step
+0.03311646003447314
+729/729 [==============================] - 26s 36ms/step
+0.046569423104439955
+729/729 [==============================] - 26s 36ms/step
+0.039606752151316316
+729/729 [==============================] - 27s 37ms/step
+0.029877338506324857
+729/729 [==============================] - 26s 36ms/step
+0.5673846723391301
+729/729 [==============================] - 26s 36ms/step
+0.03398871632694628
+729/729 [==============================] - 26s 36ms/step
+0.0457502986074511
+729/729 [==============================] - 27s 36ms/step
+0.04113641074492557
+729/729 [==============================] - 27s 36ms/step
+0.041770982413926384
+729/729 [==============================] - 26s 36ms/step
+0.03336960622767258
+729/729 [==============================] - 27s 37ms/step
+0.043775123398850396
+729/729 [==============================] - 27s 36ms/step
+0.03626592374010626
+729/729 [==============================] - 26s 36ms/step
+0.032904656557757025
+729/729 [==============================] - 27s 37ms/step
+0.03463405849692208
+#+end_example
+[[file:./.ob-jupyter/b2a8f07ec0d384d6a66b76b71175865f99fa1991.png]]
+[[file:./.ob-jupyter/fd350157aaa0d4cfc65ac4f91a090c992e3aa856.png]]
+[[file:./.ob-jupyter/d3bf7dea19f8381ed10a2732e13d31f0cb65d420.png]]
+[[file:./.ob-jupyter/dd0d9eb965c4235d5546ea58a0f0bbaeea2a813f.png]]
+[[file:./.ob-jupyter/7dfd664a894f20f3c7894342882b9543d63640fe.png]]
+[[file:./.ob-jupyter/274160beb02ad38fa33574ad71b612d66db67b6b.png]]
+[[file:./.ob-jupyter/eb4bac64cf632cb0026b0b994cd34ea2ca479e22.png]]
+[[file:./.ob-jupyter/4b90a76e673b330754b4118a2fc359b40aeeb13a.png]]
+[[file:./.ob-jupyter/0d8a113bf41de57c5593c1d9d01c460192181edc.png]]
+[[file:./.ob-jupyter/6fc20bae10b1d63407984a0c56a7d6812d893947.png]]
+[[file:./.ob-jupyter/51acddd33bde2a008c615d143f32d2ac7cc56940.png]]
+[[file:./.ob-jupyter/6926dc326d87ef9697f1328cda810af07dbdf09c.png]]
+[[file:./.ob-jupyter/9e93ffd96ab5c132c1e68914e317cd33c1b59ce3.png]]
+[[file:./.ob-jupyter/7019b5634d7d757b7c510337078e3e583c66ce87.png]]
+:END:
+#+begin_src python3
+#plt.rcParams['figure.dpi'] = 150
+for i in range(14):
+    predictions = model.predict(index=y.shape[0] - 96*(i+1))
+    print(((predictions["actual_1"] - predictions["predicted_1"])**2).sum())
+    predictions.drop(columns="time_idx").plot(kind="line")
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+#+begin_example
+729/729 [==============================] - 25s 35ms/step
+0.03311646003447314
+729/729 [==============================] - 25s 35ms/step
+0.046569423104439955
+729/729 [==============================] - 25s 35ms/step
+0.039606752151316316
+729/729 [==============================] - 25s 35ms/step
+0.029877338506324857
+729/729 [==============================] - 26s 35ms/step
+0.5673846723391301
+729/729 [==============================] - 25s 35ms/step
+0.03398871632694628
+729/729 [==============================] - 26s 35ms/step
+0.0457502986074511
+729/729 [==============================] - 25s 35ms/step
+0.04113641074492557
+729/729 [==============================] - 25s 35ms/step
+0.041770982413926384
+729/729 [==============================] - 26s 35ms/step
+0.03336960622767258
+729/729 [==============================] - 26s 35ms/step
+0.043775123398850396
+729/729 [==============================] - 25s 35ms/step
+0.03626592374010626
+729/729 [==============================] - 26s 35ms/step
+0.032904656557757025
+729/729 [==============================] - 26s 36ms/step
+0.03463405849692208
+#+end_example
+[[file:./.ob-jupyter/b2a8f07ec0d384d6a66b76b71175865f99fa1991.png]]
+[[file:./.ob-jupyter/fd350157aaa0d4cfc65ac4f91a090c992e3aa856.png]]
+[[file:./.ob-jupyter/d3bf7dea19f8381ed10a2732e13d31f0cb65d420.png]]
+[[file:./.ob-jupyter/dd0d9eb965c4235d5546ea58a0f0bbaeea2a813f.png]]
+[[file:./.ob-jupyter/7dfd664a894f20f3c7894342882b9543d63640fe.png]]
+[[file:./.ob-jupyter/274160beb02ad38fa33574ad71b612d66db67b6b.png]]
+[[file:./.ob-jupyter/eb4bac64cf632cb0026b0b994cd34ea2ca479e22.png]]
+[[file:./.ob-jupyter/4b90a76e673b330754b4118a2fc359b40aeeb13a.png]]
+[[file:./.ob-jupyter/0d8a113bf41de57c5593c1d9d01c460192181edc.png]]
+[[file:./.ob-jupyter/6fc20bae10b1d63407984a0c56a7d6812d893947.png]]
+[[file:./.ob-jupyter/51acddd33bde2a008c615d143f32d2ac7cc56940.png]]
+[[file:./.ob-jupyter/6926dc326d87ef9697f1328cda810af07dbdf09c.png]]
+[[file:./.ob-jupyter/9e93ffd96ab5c132c1e68914e317cd33c1b59ce3.png]]
+[[file:./.ob-jupyter/7019b5634d7d757b7c510337078e3e583c66ce87.png]]
+:END:
+
+#+begin_src python3
+#for i in range(14):
+    #predictions = model.predict(index=y.shape[0] - 96*(i+1))
+    #print(((predictions["actual_1"] - predictions["predicted_1"])**2).sum())
+predictions.drop(columns="time_idx")[predictions["predicted_1"].isna()].plot(kind="line", title = ((predictions["actual_1"] - predictions["predicted_1"])**2).sum())
+predictions.drop(columns="time_idx")[~predictions["predicted_1"].isna()].plot(kind="line")
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+: <AxesSubplot:>
+[[file:./.ob-jupyter/5e8055d69c3b632d0687295f67fc4bfa3d5e3722.png]]
+[[file:./.ob-jupyter/fc425080e2a37cfc3efa0c0884e8b08e6a82c7c8.png]]
+:END:
+
+#+begin_src python3
+day = predictions[~predictions["predicted_1"].isna()]
+day["value"] = ((day["actual_1"] - day["predicted_1"])**2).sum()
+predictions.merge(day, how="left")[~predictions["predicted_1"].isna()]
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+|       | time_idx | actual_1 | predicted_1 | value    |
+|-------+----------+----------+-------------+----------|
+| 22656 | 22656.0  | 6.028269 | 6.010153    | 0.034634 |
+| 22657 | 22657.0  | 6.017488 | 6.010163    | 0.034634 |
+| 22658 | 22658.0  | 6.015891 | 6.008227    | 0.034634 |
+| 22659 | 22659.0  | 6.019476 | 6.005314    | 0.034634 |
+| 22660 | 22660.0  | 6.014250 | 6.002880    | 0.034634 |
+| ...   | ...      | ...      | ...         | ...      |
+| 22747 | 22747.0  | 6.024420 | 6.002301    | 0.034634 |
+| 22748 | 22748.0  | 6.023675 | 6.003058    | 0.034634 |
+| 22749 | 22749.0  | 6.022953 | 6.003520    | 0.034634 |
+| 22750 | 22750.0  | 6.013621 | 6.004175    | 0.034634 |
+| 22751 | 22751.0  | 6.017122 | 6.002797    | 0.034634 |
+
+96 rows × 4 columns
+:END:
+
+#+begin_src python3
+total_predictions = model.predict(index=y.shape[0] - 96*1) 
+total_day = predictions[~predictions["predicted_1"].isna()]
+total_day["value"] = ((total_day["actual_1"] - total_day["predicted_1"])**2).sum()
+
+for i in range(50):
+    predictions = model.predict(index=y.shape[0] - 96*(i+2))
+    day = predictions[~predictions["predicted_1"].isna()]
+    day["error"] = ((day["actual_1"] - day["predicted_1"])**2).sum()
+    total_day = pd.concat([day, total_day])
+data_to_send = data.merge(total_day, how="left",left_index=True, right_index=True)
+data_to_send[~data_to_send["value"].isna()].to_csv("predictions.csv", index=False)
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+: 729/729 [==============================] - 26s 36ms/step
+: 729/729 [==============================] - 26s 36ms/step
+: 729/729 [==============================] - 26s 35ms/step
+|       | time_idx | actual_1 | predicted_1 | value    |
+|-------+----------+----------+-------------+----------|
+| 23712 | 23712.0  | 5.874900 | 5.857034    | 0.039607 |
+| 23713 | 23713.0  | 5.875989 | 5.856544    | 0.039607 |
+| 23714 | 23714.0  | 5.874570 | 5.856168    | 0.039607 |
+| 23715 | 23715.0  | 5.871697 | 5.855712    | 0.039607 |
+| 23716 | 23716.0  | 5.868813 | 5.854956    | 0.039607 |
+| ...   | ...      | ...      | ...         | ...      |
+| 23899 | 23899.0  | 5.935136 | 5.909405    | 0.046569 |
+| 23900 | 23900.0  | 5.935538 | 5.910693    | 0.046569 |
+| 23901 | 23901.0  | 5.938053 | 5.911594    | 0.046569 |
+| 23902 | 23902.0  | 5.939063 | 5.912719    | 0.046569 |
+| 23903 | 23903.0  | 5.939083 | 5.913854    | 0.046569 |
+
+288 rows × 4 columns
+:END:
+
+#+begin_src python3
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+|       | Unnamed: 0 | datetime            | kw_average | temperature_c | humidity_% | solar_radiation_wm2 | to_char | count | hod  | hoy     | dow | time_idx | actual_1 | predicted_1 | value    |
+|-------+------------+---------------------+------------+---------------+------------+---------------------+---------+-------+------+---------+-----+----------+----------+-------------+----------|
+| 23712 | 23712      | 2022-06-11 00:00:00 | 355.988900 | 24.85         | 66.0       | 0.6                 | sat     | 96    | 1.0  | 15553.0 | 5   | 23712.0  | 5.874900 | 5.857034    | 0.039607 |
+| 23713 | 23713      | 2022-06-11 00:15:00 | 356.376978 | 24.91         | 65.8       | 0.6                 | sat     | 96    | 2.0  | 15554.0 | 5   | 23713.0  | 5.875989 | 5.856544    | 0.039607 |
+| 23714 | 23714      | 2022-06-11 00:30:00 | 355.871433 | 24.82         | 66.2       | 0.7                 | sat     | 96    | 3.0  | 15555.0 | 5   | 23714.0  | 5.874570 | 5.856168    | 0.039607 |
+| 23715 | 23715      | 2022-06-11 00:45:00 | 354.850589 | 24.89         | 65.1       | 0.6                 | sat     | 96    | 4.0  | 15556.0 | 5   | 23715.0  | 5.871697 | 5.855712    | 0.039607 |
+| 23716 | 23716      | 2022-06-11 01:00:00 | 353.828589 | 24.75         | 66.0       | 0.8                 | sat     | 96    | 5.0  | 15557.0 | 5   | 23716.0  | 5.868813 | 5.854956    | 0.039607 |
+| ...   | ...        | ...                 | ...        | ...           | ...        | ...                 | ...     | ...   | ...  | ...     | ... | ...      | ...      | ...         | ...      |
+| 23901 | 23901      | 2022-06-12 23:15:00 | 379.195744 | 25.23         | 71.9       | 1.0                 | sun     | 96    | 94.0 | 15742.0 | 6   | 23901.0  | 5.938053 | 5.911594    | 0.046569 |
+| 23902 | 23902      | 2022-06-12 23:30:00 | 379.579189 | 25.10         | 72.3       | 0.7                 | sun     | 96    | 95.0 | 15743.0 | 6   | 23902.0  | 5.939063 | 5.912719    | 0.046569 |
+| 23902 | 23902      | 2022-06-12 23:30:00 | 379.579189 | 25.10         | 72.3       | 0.7                 | sun     | 96    | 95.0 | 15743.0 | 6   | 23902.0  | 5.939063 | 5.912719    | 0.046569 |
+| 23903 | 23903      | 2022-06-12 23:45:00 | 379.586633 | 25.03         | 72.8       | 0.4                 | sun     | 96    | 96.0 | 15744.0 | 6   | 23903.0  | 5.939083 | 5.913854    | 0.046569 |
+| 23903 | 23903      | 2022-06-12 23:45:00 | 379.586633 | 25.03         | 72.8       | 0.4                 | sun     | 96    | 96.0 | 15744.0 | 6   | 23903.0  | 5.939083 | 5.913854    | 0.046569 |
+
+288 rows × 15 columns
+:END:
+
+* References
+
+The code takes inspiration from the following papers (available freely through [[https://manoa.hawaii.edu/library/][UH Library]]  or on [[https://arxiv.org/][Arxiv]]):
+
+He, Y. L., Chen, L., Gao, Y., Ma, J. H., Xu, Y., & Zhu, Q. X. (2022). Novel double-layer bidirectional LSTM network with improved attention mechanism for predicting energy consumption. ISA transactions, 127, 350-360.
+
+Lai, G., Chang, W. C., Yang, Y., & Liu, H. (2018, June). Modeling long-and short-term temporal patterns with deep neural networks. In The 41st international ACM SIGIR conference on research & development in information retrieval (pp. 95-104).
+
+My deepest gratitude to Dr. Michael J. Roberts, Dr. Peter Sadowski, and the authors of the papers cited.

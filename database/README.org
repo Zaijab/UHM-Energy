@@ -1,0 +1,63 @@
+This directory defines modules to define the database and to access said database.
+
+* Data Sources
+
+The main source of data is from Aurora at BluePillar. Using their API, we grab 15 Minute kW and kWh data for every meter and every building.
+
+Aurora has meters and buildings complexes.
+
+Aurora Meters can turn into the meter list.
+
+Manoa Master Building List has a list of buildings.
+
+Chiller loops on the Drive contains the cooling loops.
+
+** Access
+
+Clone the repository https://github.com/dlenski/gp-saml-gui
+
+#+begin_src shell
+git clone https://github.com/dlenski/gp-saml-gui
+#+end_src
+
+Enter the directory and run the python file.
+
+
+* Element Hierarchy
+
+We may define the metering hierarchy by containment. The rule is as follows:
+
+=Campus= *contains* =Cooling Loops= which *contains* =Building Complexes= which *contains* =Buildings= which *contains* =Main Meters= which *contains* =Sub meters=.
+
+The idea is to create a hierarchy of containment as most calculations will involve taking one property, and summing over the values of that property. That is, we would like to easily answer the following questions:
+
+- How much power does the Quadrangle loop draw at a given point in time?
+
+- What is the total demand per square foot of POST Building and the chiller plant?
+
+- That is the time of the peak demand for Manoa?
+
+- How close (in time) are the peaks of Manoa campus and the peaks of each building complex?
+
+For each element of the hierarchy we establish a table in the =aurora= schema in PostgreSQL.
+
+
+* Tables
+We may construct tables using the =verbatim= elements in the previous bullet.
+
+We use surrogate keys for each primary descriptor of the tables. This is useful for the machine learning algorithms.
+
+In the following, each heading is a table name and each subheading is a column.
+
+** Campus
+
+** Cooling Loops
+
+** Building Complexes
+
+** Buildings
+
+** Main Meters
+
+** Sub Meters
+

@@ -1,0 +1,54 @@
+This is a joint work with the University of Hawai'i at Mānoa.
+
+* Goals of this project
+
+** Data Pipeline
+Construct a data pipeline which will extract, transform, and load data from Aurora at BluePillar.
+
+*** Extract
+The main data comes from Aurora at BluePillar, a company contracted to meter many variables at the University. Due to the [[https://www.hawaii.edu/infosec/policies/][data governance policies]] at UH, certification and training is required before obtaining access to the dataset. I recommend to new students that they start this process early, if they wish to work with current data.
+
+*** Transform
+The dataset has multiple errors associated with it.
+These are as follows:
+
+- Flatlined Data
+- Negative Data
+- Outlier Data
+- Energy Downtick Data
+
+We will move these erroneous rows to a rejected table.
+
+*** Load
+The data post cleaning will be loaded into a PostgreSQL data warehouse. 
+
+** Data Warehousing
+Define an organizing logic for a data warehouse.
+
+*** PostgreSQL
+PostgreSQL is used as the Relational Database Management System (RDBMS). 
+
+*** SQLAlchemy
+SQLAlchemy will define an Object Relational Mapping (ORM) for PostgreSQL. Python will be used for the Create, Read, Update, and Delete (CRUD) commands for PostgreSQL using the Psycopg2 driver. This reduces the environment gap between PostgreSQL for managing the database, and Pandas DataFrames for analysis.
+
+** Forecasting
+Build a forecasting model which predicts future building demand and usage.
+The current model implemented is a Long Short-Term Memory Recurrent Neural Network. This is defined in the =./forecasting/= directory.
+
+* Using this repository
+
+** Reproducibility
+This project is intended to be loaded seamlessly using GNU Guix and direnv.
+The root of this project contains definitions for =.envrc=, =manifest.scm=, =guix.scm=, and =Makefile=.
+
+The following commands will be ran
+
+#+BEGIN_SRC sh
+git clone https://github.com/Zaijab/UHM-Energy.git
+cd UHM-Energy
+direnv allow
+#+END_SRC
+
+Using =GNU Emacs= and =direnv-mode= will install all the required packages using the =GNU Guix= package manager automatically and will set all the environmental variables.
+
+However this project is not limited to =GNU Guix= and as long as one installs the right packages from =PyPI= the code shall run.
