@@ -1,0 +1,79 @@
+#+TITLE: Forecasting Time Series
+#+PROPERTY: header-args:python3 :exports "results" :session weather :pandoc t :async yes
+
+* Data Source
+#+begin_src python3
+import pandas as pd
+from database.access import database
+
+database_inst = database()
+power_average = pd.read_sql("SELECT * FROM aurora_api.building_power_average", database_inst.engine)
+power_average.to_csv("../data/power_average.csv", index=False)
+#+end_src
+
+#+RESULTS:
+: 2023-01-17 15:02:16,248| ERROR   | Password is required for key /home/zjabbar/.ssh/id_rsa
+
+#+begin_src python3
+import pandas as pd
+import matplotlib
+
+matplotlib.rcParams['figure.figsize'] = (14,11)
+matplotlib.rcParams['figure.figsize'] = (14,11)
+
+power_average = pd.read_csv('../data/power_average.csv')
+power_average
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+|         | building_name     | datetime            | kw_average | temperature_c | humidity | solar_radiation_wm2 | day_type |
+|---------+-------------------+---------------------+------------+---------------+----------+---------------------+----------|
+| 0       | ADMIN SERV BLDG 1 | 2022-01-21 12:35:00 | 43.720495  | 26.96         | 58.6     | 486.8               | school   |
+| 1       | ADMIN SERV BLDG 1 | 2022-01-21 12:45:00 | 45.712824  | 27.01         | 59.0     | 1028.0              | school   |
+| 2       | ADMIN SERV BLDG 1 | 2022-01-21 13:00:00 | 47.229600  | 26.40         | 57.9     | 898.7               | school   |
+| 3       | ADMIN SERV BLDG 1 | 2022-01-21 13:15:00 | 48.546514  | 26.86         | 58.1     | 960.4               | school   |
+| 4       | ADMIN SERV BLDG 1 | 2022-01-21 13:30:00 | 46.725240  | 26.70         | 57.3     | 912.1               | school   |
+| ...     | ...               | ...                 | ...        | ...           | ...      | ...                 | ...      |
+| 1661215 | WIST HALL         | 2022-08-23 22:45:00 | 14.298067  | 24.54         | 78.5     | 0.6                 | school   |
+| 1661216 | WIST HALL         | 2022-08-23 23:00:00 | 14.417511  | 24.34         | 79.1     | 0.7                 | school   |
+| 1661217 | WIST HALL         | 2022-08-23 23:15:00 | 14.429844  | 24.28         | 79.6     | 0.9                 | school   |
+| 1661218 | WIST HALL         | 2022-08-23 23:30:00 | 14.133656  | 24.19         | 80.0     | 0.9                 | school   |
+| 1661219 | WIST HALL         | 2022-08-23 23:45:00 | 14.338022  | 24.08         | 80.3     | 1.0                 | school   |
+
+1661220 rows × 7 columns
+:END:
+
+#+begin_src python3
+wist = power_average[power_average["building_name"] == "WIST HALL"]
+plot_cols = ['kw_average', 'temperature_c', 'humidity', 'solar_radiation_wm2']
+wist[plot_cols].set_index(wist['datetime']).plot(subplots=True)
+_ = matplotlib.pyplot.xticks(rotation=70)
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/2b014393b98cd987664b5401a378ec05d7bd5145.png]]
+
+#+begin_src python3
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+
+fft = tf.signal.rfft(wist['kw_average'])
+f_per_dataset = np.arange(0, len(fft))
+
+n_samples_h = len(wist['kw_average'])
+hours_per_year = 24*365.2524
+years_per_dataset = n_samples_h/(hours_per_year)
+
+f_per_year = f_per_dataset/years_per_dataset
+plt.step(f_per_year, np.abs(fft))
+plt.xscale('log')
+plt.ylim(0, 100000)
+plt.xlim([0.1, max(plt.xlim())])
+plt.xticks([1, 52, 365.2524], labels=['1/Year', '1/week', '1/day'])
+_ = plt.xlabel('Frequency (log scale)')
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/1a9cb45ca29eca4ba9fab862f2d810614acc31b8.png]]

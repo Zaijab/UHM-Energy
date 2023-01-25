@@ -31,6 +31,7 @@ total_predictions = model.predict(index=y.shape[0] - 96*1)
 total_day = total_predictions[~total_predictions["predicted_1"].isna()]
 total_day["error"] = ((total_day["actual_1"] - total_day["predicted_1"])**2).sum()
 
+
 for i in range(365):
     predictions = model.predict(index=y.shape[0] - 96*(i+2))
     day = predictions[~predictions["predicted_1"].isna()]

@@ -1,35 +1,24 @@
-This directory defines modules to define the database and to access said database.
+This directory defines modules to define the database populated by Aurora at BluePillar data and to access said database.
 
-* Data Sources
+* Aurora Access
 
-The main source of data is from Aurora at BluePillar. Using their API, we grab 15 Minute kW and kWh data for every meter and every building.
+The authentication method for the Aurora servers is Security Assertion Markup Language (SAML) is an XML-based, open-standard data format used to exchange authentication and authorization data between parties using the Palo Alto Networks Global Protect protocol.
 
-Aurora has meters and buildings complexes.
+To access the network, send a =POST= command to read SAML content like =prelogin-cookie=, =slo=, and =auth-status= then invoke the proper network manager command from the output.
 
-Aurora Meters can turn into the meter list.
+This database contains =filters= for =tags= of which we may read historical data.
 
-Manoa Master Building List has a list of buildings.
+* PostgreSQL Access
 
-Chiller loops on the Drive contains the cooling loops.
-
-** Access
-
-Clone the repository https://github.com/dlenski/gp-saml-gui
-
-#+begin_src shell
-git clone https://github.com/dlenski/gp-saml-gui
-#+end_src
-
-Enter the directory and run the python file.
-
+To gain access to the PostgreSQL server, one must =SSH= onto the server first, then log into the PostgreSQL program of choice. 
 
 * Element Hierarchy
 
 We may define the metering hierarchy by containment. The rule is as follows:
 
-=Campus= *contains* =Cooling Loops= which *contains* =Building Complexes= which *contains* =Buildings= which *contains* =Main Meters= which *contains* =Sub meters=.
+=Sites= *contains* =Buildings= which *contains* =Meters=.
 
-The idea is to create a hierarchy of containment as most calculations will involve taking one property, and summing over the values of that property. That is, we would like to easily answer the following questions:
+This forms a [[https://en.wikipedia.org/wiki/Posetal_category][posetal category]], making the following query transactions trivial:
 
 - How much power does the Quadrangle loop draw at a given point in time?
 
@@ -39,25 +28,4 @@ The idea is to create a hierarchy of containment as most calculations will invol
 
 - How close (in time) are the peaks of Manoa campus and the peaks of each building complex?
 
-For each element of the hierarchy we establish a table in the =aurora= schema in PostgreSQL.
-
-
-* Tables
-We may construct tables using the =verbatim= elements in the previous bullet.
-
-We use surrogate keys for each primary descriptor of the tables. This is useful for the machine learning algorithms.
-
-In the following, each heading is a table name and each subheading is a column.
-
-** Campus
-
-** Cooling Loops
-
-** Building Complexes
-
-** Buildings
-
-** Main Meters
-
-** Sub Meters
-
+For each element of the hierarchy we establish a table in the =aurora_api= schema in PostgreSQL.

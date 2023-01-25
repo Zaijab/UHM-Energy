@@ -1,0 +1,398 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/zjabbar/code/UHM-Energy/forecasting/time_series.org
+
+
+* Multi-step models
+   :PROPERTIES:
+   :CUSTOM_ID: multi-step-models
+   :ARCHIVE_TIME: 2023-01-24 Tue 07:36
+   :ARCHIVE_FILE: ~/code/UHM-Energy/forecasting/time_series.org
+   :ARCHIVE_OLPATH: Time series forecasting
+   :ARCHIVE_CATEGORY: time_series
+   :END:
+Both the single-output and multiple-output models in the previous
+sections made *single time step predictions*, one hour into the future.
+
+This section looks at how to expand these models to make *multiple time
+step predictions*.
+
+In a multi-step prediction, the model needs to learn to predict a range
+of future values. Thus, unlike a single step model, where only a single
+future point is predicted, a multi-step model predicts a sequence of the
+future values.
+
+There are two rough approaches to this:
+
+1. Single shot predictions where the entire time series is predicted at
+   once.
+2. Autoregressive predictions where the model only makes single step
+   predictions and its output is fed back as its input.
+
+In this section all the models will predict *all the features across all
+output time steps*.
+
+For the multi-step model, the training data again consists of hourly
+samples. However, here, the models will learn to predict 24 hours into
+the future, given 24 hours of the past.
+
+Here is a =Window= object that generates these slices from the dataset:
+
+#+BEGIN_SRC python3
+  OUT_STEPS = 24
+  multi_window = WindowGenerator(input_width=24,
+                                 label_width=OUT_STEPS,
+                                 shift=OUT_STEPS)
+
+  multi_window.plot()
+  multi_window
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+: Total window size: 48
+: Input indices: [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+: Label indices: [24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47]
+: Label column name(s): None
+[[file:./.ob-jupyter/f4f28ce7493464518b7bdf03bc3cf03fa879ad85.png]]
+:END:
+
+#+BEGIN_SRC python3
+  Total window size: 48
+  Input indices: [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+  Label indices: [24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47]
+  Label column name(s): None
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+:   Input In [84]
+:     Total window size: 48
+:           ^
+: SyntaxError: invalid syntax
+:END:
+
+#+caption: png
+[[file:time_series_files/time_series_154_1.png]]
+
+** Baselines
+    :PROPERTIES:
+    :CUSTOM_ID: baselines
+    :END:
+A simple baseline for this task is to repeat the last input time step
+for the required number of output time steps:
+
+#+caption: Repeat the last input, for each output step
+[[https://github.com/tensorflow/docs/blob/master/site/en/tutorials/structured_data/images/multistep_last.png?raw=1]]
+
+#+BEGIN_SRC python3
+  class MultiStepLastBaseline(tf.keras.Model):
+    def call(self, inputs):
+      return tf.tile(inputs[:, -1:, :], [1, OUT_STEPS, 1])
+
+  last_baseline = MultiStepLastBaseline()
+  last_baseline.compile(loss=tf.keras.losses.MeanSquaredError(),
+                        metrics=[tf.keras.metrics.MeanAbsoluteError()])
+
+  multi_val_performance = {}
+  multi_performance = {}
+
+  multi_val_performance['Last'] = last_baseline.evaluate(multi_window.val)
+  multi_performance['Last'] = last_baseline.evaluate(multi_window.test, verbose=0)
+  multi_window.plot(last_baseline)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+: 28/28 [==============================] - 0s 1ms/step - loss: 1.4235 - mean_absolute_error: 0.8203
+[[file:./.ob-jupyter/39c52e0109fb6ed2579184133a7a5c1eba00c2c4.png]]
+:END:
+
+#+BEGIN_SRC python3
+  18/18 [==============================] - 0s 3ms/step - loss: 1.5940 - mean_absolute_error: 0.8855
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+:   Input In [86]
+:     18/18 [==============================] - 0s 3ms/step - loss: 1.5940 - mean_absolute_error: 0.8855
+:            ^
+: SyntaxError: invalid syntax
+:END:
+
+#+caption: png
+[[file:time_series_files/time_series_157_1.png]]
+
+Since this task is to predict 24 hours into the future, given 24 hours
+of the past, another simple approach is to repeat the previous day,
+assuming tomorrow will be similar:
+
+#+caption: Repeat the previous day
+[[https://github.com/tensorflow/docs/blob/master/site/en/tutorials/structured_data/images/multistep_repeat.png?raw=1]]
+
+#+BEGIN_SRC python3
+  class RepeatBaseline(tf.keras.Model):
+    def call(self, inputs):
+      return inputs
+
+  repeat_baseline = RepeatBaseline()
+  repeat_baseline.compile(loss=tf.keras.losses.MeanSquaredError(),
+                          metrics=[tf.keras.metrics.MeanAbsoluteError()])
+
+  multi_val_performance['Repeat'] = repeat_baseline.evaluate(multi_window.val)
+  multi_performance['Repeat'] = repeat_baseline.evaluate(multi_window.test, verbose=0)
+  multi_window.plot(repeat_baseline)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+: 28/28 [==============================] - 0s 1ms/step - loss: 0.8651 - mean_absolute_error: 0.5289
+[[file:./.ob-jupyter/797d549e86381a9987bd234f9c3967581f36898a.png]]
+:END:
+
+#+BEGIN_SRC python3
+  18/18 [==============================] - 0s 3ms/step - loss: 2.4009 - mean_absolute_error: 1.2556
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+:   Input In [88]
+:     18/18 [==============================] - 0s 3ms/step - loss: 2.4009 - mean_absolute_error: 1.2556
+:            ^
+: SyntaxError: invalid syntax
+:END:
+
+#+caption: png
+[[file:time_series_files/time_series_159_1.png]]
+
+** Advanced: Autoregressive model
+    :PROPERTIES:
+    :CUSTOM_ID: advanced-autoregressive-model
+    :END:
+The above models all predict the entire output sequence in a single
+step.
+
+In some cases it may be helpful for the model to decompose this
+prediction into individual time steps. Then, each model's output can be
+fed back into itself at each step and predictions can be made
+conditioned on the previous one, like in the classic Generating
+Sequences With Recurrent Neural Networks.
+
+One clear advantage to this style of model is that it can be set up to
+produce output with a varying length.
+
+You could take any of the single-step multi-output models trained in the
+first half of this tutorial and run in an autoregressive feedback loop,
+but here you'll focus on building a model that's been explicitly trained
+to do that.
+
+#+caption: Feedback a model's output to its input
+[[https://github.com/tensorflow/docs/blob/master/site/en/tutorials/structured_data/images/multistep_autoregressive.png?raw=1]]
+
+*** RNN
+     :PROPERTIES:
+     :CUSTOM_ID: rnn-2
+     :END:
+This tutorial only builds an autoregressive RNN model, but this pattern
+could be applied to any model that was designed to output a single time
+step.
+
+The model will have the same basic form as the single-step LSTM models
+from earlier: a =tf.keras.layers.LSTM= layer followed by a
+=tf.keras.layers.Dense= layer that converts the =LSTM= layer's outputs
+to model predictions.
+
+A =tf.keras.layers.LSTM= is a =tf.keras.layers.LSTMCell= wrapped in the
+higher level =tf.keras.layers.RNN= that manages the state and sequence
+results for you (Check out the
+[[https://www.tensorflow.org/guide/keras/rnn][Recurrent Neural Networks
+(RNN) with Keras]] guide for details).
+
+In this case, the model has to manually manage the inputs for each step,
+so it uses =tf.keras.layers.LSTMCell= directly for the lower level,
+single time step interface.
+
+#+BEGIN_SRC python3
+  class FeedBack(tf.keras.Model):
+    def __init__(self, units, out_steps):
+      super().__init__()
+      self.out_steps = out_steps
+      self.units = units
+      self.lstm_cell = tf.keras.layers.LSTMCell(units)
+      # Also wrap the LSTMCell in an RNN to simplify the `warmup` method.
+      self.lstm_rnn = tf.keras.layers.RNN(self.lstm_cell, return_state=True)
+      self.dense = tf.keras.layers.Dense(num_features)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC python3
+  feedback_model = FeedBack(units=32, out_steps=OUT_STEPS)
+#+END_SRC
+
+#+RESULTS:
+
+The first method this model needs is a =warmup= method to initialize its
+internal state based on the inputs. Once trained, this state will
+capture the relevant parts of the input history. This is equivalent to
+the single-step =LSTM= model from earlier:
+
+#+BEGIN_SRC python3
+  def warmup(self, inputs):
+    # inputs.shape => (batch, time, features)
+    # x.shape => (batch, lstm_units)
+    x, *state = self.lstm_rnn(inputs)
+
+    # predictions.shape => (batch, features)
+    prediction = self.dense(x)
+    return prediction, state
+
+  FeedBack.warmup = warmup
+#+END_SRC
+
+#+RESULTS:
+
+This method returns a single time-step prediction and the internal state
+of the =LSTM=:
+
+#+BEGIN_SRC python3
+  prediction, state = feedback_model.warmup(multi_window.SRC[0])
+  prediction.shape
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+: ---------------------------------------------------------------------------
+: AttributeError                            Traceback (most recent call last)
+: Input In [92], in <cell line: 1>()
+: ----> 1 prediction, state = feedback_model.warmup(multi_window.SRC[0])
+:       2 prediction.shape
+: 
+: AttributeError: 'WindowGenerator' object has no attribute 'SRC'
+:END:
+
+#+BEGIN_SRC python3
+  TensorShape([32, 5])
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+: ---------------------------------------------------------------------------
+: NameError                                 Traceback (most recent call last)
+: Input In [93], in <cell line: 1>()
+: ----> 1 TensorShape([32, 5])
+: 
+: NameError: name 'TensorShape' is not defined
+:END:
+
+With the =RNN='s state, and an initial prediction you can now continue
+iterating the model feeding the predictions at each step back as the
+input.
+
+The simplest approach for collecting the output predictions is to use a
+Python list and a =tf.stack= after the loop.
+
+Note: Stacking a Python list like this only works with eager-execution,
+using =Model.compile(..., run_eagerly=True)= for training, or with a
+fixed length output. For a dynamic output length, you would need to use
+a =tf.TensorArray= instead of a Python list, and =tf.range= instead of
+the Python =range=.
+
+#+BEGIN_SRC python3
+  def call(self, inputs, training=None):
+    # Use a TensorArray to capture dynamically unrolled outputs.
+    predictions = []
+    # Initialize the LSTM state.
+    prediction, state = self.warmup(inputs)
+
+    # Insert the first prediction.
+    predictions.append(prediction)
+
+    # Run the rest of the prediction steps.
+    for n in range(1, self.out_steps):
+      # Use the last prediction as input.
+      x = prediction
+      # Execute one lstm step.
+      x, state = self.lstm_cell(x, states=state,
+                                training=training)
+      # Convert the lstm output to a prediction.
+      prediction = self.dense(x)
+      # Add the prediction to the output.
+      predictions.append(prediction)
+
+    # predictions.shape => (time, batch, features)
+    predictions = tf.stack(predictions)
+    # predictions.shape => (batch, time, features)
+    predictions = tf.transpose(predictions, [1, 0, 2])
+    return predictions
+
+  FeedBack.call = call
+#+END_SRC
+
+#+RESULTS:
+
+Test run this model on the SRC inputs:
+
+#+BEGIN_SRC python3
+  print('Output shape (batch, time, features): ', feedback_model(multi_window.SRC[0]).shape)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+: ---------------------------------------------------------------------------
+: AttributeError                            Traceback (most recent call last)
+: Input In [95], in <cell line: 1>()
+: ----> 1 print('Output shape (batch, time, features): ', feedback_model(multi_window.SRC[0]).shape)
+: 
+: AttributeError: 'WindowGenerator' object has no attribute 'SRC'
+:END:
+
+#+BEGIN_SRC python3
+  Output shape (batch, time, features):  (32, 24, 5)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+:   Input In [96]
+:     Output shape (batch, time, features):  (32, 24, 5)
+:            ^
+: SyntaxError: invalid syntax
+:END:
+
+Now, train the model:
+
+#+BEGIN_SRC python3
+  history = compile_and_fit(feedback_model, multi_window)
+
+  IPython.display.clear_output()
+
+  multi_val_performance['AR LSTM'] = feedback_model.evaluate(multi_window.val)
+  multi_performance['AR LSTM'] = feedback_model.evaluate(multi_window.test, verbose=0)
+  multi_window.plot(feedback_model)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# [goto error]
+: ---------------------------------------------------------------------------
+: NameError                                 Traceback (most recent call last)
+: Input In [97], in <cell line: 1>()
+: ----> 1 history = compile_and_fit(feedback_model, multi_window)
+:       3 IPython.display.clear_output()
+:       5 multi_val_performance['AR LSTM'] = feedback_model.evaluate(multi_window.val)
+: 
+: NameError: name 'compile_and_fit' is not defined
+:END:
+#+RESULTS:
+
+#+caption: png
+[[file:time_series_files/time_series_185_1.png]]
+
